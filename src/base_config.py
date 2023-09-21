@@ -7,6 +7,7 @@ from torch.nn import BCEWithLogitsLoss, MSELoss
 from segment_anything.modeling import Sam
 from segment_anything import sam_model_registry
 from src.models.iterative_polypSAM import IterativePolypSAM
+from src.models.selfprompt_SAM import AutomaticPolypSAM
 from src.scheduler import LinearWarmupCosineAnnealingLR
 from src.losses import CombinedLoss
 from src.datasets import PromptPolypDataset
@@ -20,7 +21,7 @@ class Config:
 
         # Model
         sam: Sam = sam_model_registry[MODEL_SIZE](PRETRAINED_PATH)
-        self.model = IterativePolypSAM(sam.image_encoder,
+        self.model = AutomaticPolypSAM(sam.image_encoder,
                                        sam.mask_decoder,
                                        sam.prompt_encoder)
 

@@ -66,6 +66,8 @@ class PromptBaseDataset(Dataset):
             mask = transformed["mask"]
             boxes = np.asarray(transformed["bboxes"], dtype=np.int32)
 
+        origin_mask = mask
+
         # Extract Points and Masks wrt box
         num_box = boxes.shape[0]
         masks = []
@@ -102,12 +104,13 @@ class PromptBaseDataset(Dataset):
         # To Tensor
         image = ToTensor()(image)
         mask = ToTensor()(masks) # (B, num_box, H, W)
+        origin_mask = ToTensor()(origin_mask) # (B, 1, H, W)
         task_prompts = torch.as_tensor([self.task_number], dtype=torch.int)
         point_prompts = torch.as_tensor(point_prompts, dtype=torch.float) # (num_box, points_per_box, 2)
         point_labels = torch.as_tensor(point_labels, dtype=torch.int) # (num_box, points_per_box)
         box_prompts = torch.as_tensor(box_prompts, dtype=torch.float) # (num_box, 4)
 
-        return image, mask, point_prompts, point_labels, box_prompts, task_prompts
+        return image, mask, point_prompts, point_labels, box_prompts, task_prompts, origin_mask
 
 
 class ConcatPromptDataset(ConcatDataset):

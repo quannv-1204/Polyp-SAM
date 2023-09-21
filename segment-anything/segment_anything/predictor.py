@@ -12,7 +12,7 @@ from segment_anything.modeling import Sam
 from typing import Optional, Tuple
 
 from .utils.transforms import ResizeLongestSide
-
+from .utils.utils import sample_box, filter_box
 
 class SamPredictor:
     def __init__(
@@ -217,13 +217,21 @@ class SamPredictor:
             points = (point_coords, point_labels)
         else:
             points = None
-
+        sub_mask = self.model.sub_head(self.features)
+        sub_mask = self.model.postprocess_masks(sub_mask, self.input_size, self.original_size)
+        sub_mask = sub_mask > self.model.mask_threshold
+        sub_mask = torch.where(sub_mask, 255, 0)
+        sub_mask = sub_mask.squeeze().detach().cpu().numpy()
+        box = sample_box(sub_mask)
+        box = filter_box(box)
+        boxes = torch.as_tensor(box, dtype=torch.float).to(self.features.device)
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(
             points=points,
             boxes=boxes,
             masks=mask_input,
         )
+
 
         # Predict masks
         low_res_masks, iou_predictions = self.model.mask_decoder(
@@ -236,7 +244,6 @@ class SamPredictor:
 
         # Upscale the masks to the original image resolution
         masks = self.model.postprocess_masks(low_res_masks, self.input_size, self.original_size)
-
         if not return_logits:
             masks = masks > self.model.mask_threshold
 

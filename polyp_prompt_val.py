@@ -148,7 +148,7 @@ def parse_args():
 
     return args
 
-
+#python polyp_prompt_val.py workdir/train/2023-09-19_095531/ckpts/20.pt configs.focal-dice-20ep_box --path /home/nguyen.van.quan/sun-polyp/Dataset/TestDataset --use-box
 if __name__ == '__main__':
     args = parse_args()
     test_prompt(args.ckpt,
